@@ -1,304 +1,102 @@
-import tkinter as tk
-from tkinter import filedialog, ttk, messagebox
-import pandas as pd
+"""
+Rightmove-Sold | Showcase Version
+Author: Junayd Elahi
+
+This script showcases the structure and capability of a robust property scraping and Excel integration tool.
+All core logic is removed. Function names and purpose explanations remain to illustrate functionality.
+"""
+
+# Import modules used (no internal logic is shown)
 import requests
 from bs4 import BeautifulSoup
 import re
-from datetime import datetime, timedelta
 import openpyxl
-import time
-import random
+from datetime import datetime
+from num2words import num2words
 
-class SheetDialog(tk.Toplevel):
-    def __init__(self, parent, sheet_names):
-        super().__init__(parent)
-        self.title("Select Sheet")
-        self.selected_sheet = None
+# ---------------------- Location ID Utilities ----------------------
 
-        self.sheet_listbox = tk.Listbox(self, selectmode=tk.SINGLE, exportselection=0)
-        for sheet_name in sheet_names:
-            self.sheet_listbox.insert(tk.END, sheet_name)
-        self.sheet_listbox.pack(padx=10, pady=10)
+def get_location_id(postcode):
+    """Fetches the internal Rightmove location ID using a postcode."""
+    pass  # logic removed
 
-        select_button = ttk.Button(self, text="Select Sheet", command=self.select_sheet)
-        select_button.pack(pady=10)
+def setup(postcode):
+    """Generates sales and rental URLs using the extracted location ID."""
+    pass  # logic removed
 
-    def select_sheet(self):
-        selected_index = self.sheet_listbox.curselection()
-        if selected_index:
-            self.selected_sheet = self.sheet_listbox.get(selected_index)
-        self.destroy()
+# ---------------------- Scraping Logic ----------------------
 
-# Function to scrape links
 def scrape_links(urls, headers):
-    postcode_links = {}
-    base_url = "https://www.rightmove.co.uk"
+    """Scrapes listing links from Rightmove based on search URLs."""
+    pass  # logic removed
 
-    for postcode, url in urls:
-        response = requests.get(url, headers=headers)
-        soup = BeautifulSoup(response.text, 'html.parser')
-        finder = soup.find_all('a', class_='propertyCard-link')
-
-        links = set()
-        for link in finder:
-            href = link.get('href')
-            if href and href.startswith('/properties'):
-                full_url = base_url + href
-                links.add(full_url)
-
-        postcode_links[postcode] = links
-    return postcode_links
-
-# Function to extract ID from URL
 def extract_id(url):
-    match = re.search(r'/properties/(\d+)', url)
-    return match.group(1) if match else None
+    """Extracts the property ID from a Rightmove property URL."""
+    pass  # logic removed
 
-# Function to fetch URL with retries
 def fetch_url_with_retries(url, headers, retries=5, backoff_factor=1):
-    for attempt in range(retries):
-        try:
-            response = requests.get(url, headers=headers, timeout=10)
-            response.raise_for_status()
-            return response
-        except (requests.RequestException, requests.ConnectionError) as e:
-            print(f"Attempt {attempt + 1} failed for URL: {url} with error: {e}")
-            if attempt < retries - 1:
-                time.sleep(backoff_factor * (2 ** attempt) + random.uniform(0, 1))
-            else:
-                return None
+    """Attempts to fetch a page multiple times with backoff handling."""
+    pass  # logic removed
 
-# Modify the check_and_add_links function
-def check_and_add_links(postcode_links, file_path, sheet_name, headers):
-    try:
-        workbook = openpyxl.load_workbook(file_path)
-        sheet = workbook[sheet_name]
+# ---------------------- Excel Sheet Comparison & Updating ----------------------
 
-    except Exception as e:
-        print(f"An error occurred while loading the workbook: {e}")
-        return
+def check_and_add_links(links_data, file_path, sheet_index, headers):
+    """
+    Compares scraped data to an internal Excel workbook:
+    - Adds new properties not in the log
+    - Updates price/date/square footage where necessary
+    """
+    pass  # logic removed
 
-    if sheet.max_column < 10:  # Ensure there are enough columns
-        print("Sheet does not have enough columns.")
-        return
+# ---------------------- Data Extraction Utilities ----------------------
 
-
-    for postcode, href_set in postcode_links.items():
-        href_ids = {extract_id(url) for url in href_set if extract_id(url)}
-        excel_links = [str(cell.value) for row in sheet.iter_rows(min_row=2, max_col=2, max_row=sheet.max_row) for cell in row]
-        excel_ids = {extract_id(url) for url in excel_links if extract_id(url)}
-        missing_ids = href_ids - excel_ids
-
-        print(f"Number of missing links for postcode {postcode}: {len(missing_ids)}")
-
-        if missing_ids:
-            missing_links = [f"https://www.rightmove.co.uk/properties/{id}" for id in missing_ids]
-            missing_data = []
-            for link in missing_links:
-                try:
-                    response = fetch_url_with_retries(link, headers)
-                    if response:
-                        soup = BeautifulSoup(response.text, 'html.parser')
-
-                        agent_data = agent(soup)
-                        floor_data = floor(soup)
-                        bedroom_data = bedroom(soup)
-                        price_data = price(soup)
-                        size_data = size(soup)
-                        date_data = date(soup)
-                        missing_data.append([postcode, link, "", agent_data, "", floor_data, bedroom_data, price_data, size_data, "", date_data])
-
-                except Exception as e:
-                    print(f"Error processing link {link}: {e}")
-                    # Log the error for investigation
-                    continue  # Skip adding data for this link
-
-            for row_data in missing_data:
-                sheet.append(row_data)
-
-    try:
-        workbook.save(file_path)
-
-        print("Missing links added to the Excel sheet.")
-    except Exception as e:
-        print(f"An error occurred while saving the workbook: {e}")
-# Function to get agent
 def agent(soup):
-    agent_finder = soup.find('a', class_='_2rTPddC0YvrcYaJHg9wfTP')
-    if agent_finder:
-        img_tag = agent_finder.find('img')
-        if img_tag:
-            agent_text = img_tag.get('alt', '').strip()
-            if agent_text:
-                return agent_text
-    return "Agent not found"
+    """Extracts the name of the listing agent from the property page."""
+    pass  # logic removed
 
-# Function to get floor level
 def floor(soup):
-    floor_finder = soup.find('ul', class_="_1uI3IvdF5sIuBtRIvKrreQ")
-    if floor_finder:
-        amenities = floor_finder.find_all('li', class_="lIhZ24u1NHMa5Y6gDH90A")
-        for amenity in amenities:
-            amenity_text = amenity.text.lower()
-            if 'floor' in amenity_text and 'residents' not in amenity_text and 'swimming pool' not in amenity_text:
-                floor_text = amenity.text.split(':')[-1].strip()
-                floor_number = ''.join(filter(str.isdigit, floor_text))
-                if floor_number:
-                    return floor_number
+    """Extracts the floor number from structured or unstructured listing text."""
+    pass  # logic removed
 
-    floor_from_paragraph = soup.find('div', class_=["STw8udCxUaBUMfOOZu0iL", "kJR0bMoi8VLouNkBRKGww"])
-    if floor_from_paragraph:
-        text = floor_from_paragraph.get_text()
-        floor_pattern = re.compile(r'\b(\d{1,2}(?:st|nd|rd|th)?)\s+floor\b', re.IGNORECASE)
-        matches = floor_pattern.findall(text)
-        for match in matches:
-            context_before = text.lower().split(match.lower())[0][-50:]
-            context_after = text.lower().split(match.lower())[1][:50]
-            if 'residents' not in context_before and 'swimming pool' not in context_before and \
-                    'residents' not in context_after and 'swimming pool' not in context_after:
-                floor_number = ''.join(filter(str.isdigit, match))
-                if floor_number:
-                    return floor_number
-    return "Floor number not found"
+def find_word_based_floor(soup):
+    """Alternative floor detection method using natural language patterns."""
+    pass  # logic removed
 
-# Function to get bedroom information
+def extract_floor_from_text(text):
+    """Parses numeric or written floor levels from sentence strings."""
+    pass  # logic removed
+
 def bedroom(soup):
-    bedroom_finder = soup.find_all('p', class_='_1hV1kqpVceE9m-QrX_hWDN')
-    if len(bedroom_finder) >= 2:
-        bedroom_data = bedroom_finder[1].text
-        return bedroom_data
-    else:
-        return "No bedroom information found"
+    """Detects number of bedrooms (or 'studio') from listing metadata."""
+    pass  # logic removed
 
-# Function to get price
 def price(soup):
-    price_finder = soup.find('div', class_='_1gfnqJ3Vtd1z40MlC0MzXu')
-    if price_finder:
-        price_span = price_finder.find('span')
-        if price_span:
-            price = price_span.text.strip()
-            return price
-    return "Price not found"
+    """Extracts the listed price (monthly or total) from the page."""
+    pass  # logic removed
 
-# Function to get size
 def size(soup):
-    size_finders = soup.find_all('p', class_="_1hV1kqpVceE9m-QrX_hWDN")
-    if size_finders:
-        for size_finder in size_finders:
-            size_content = size_finder.get_text().strip()
-            if size_content == 'Ask agent':
-                return "No sq ft"
-            if 'sq ft' in size_content.lower():
-                return size_content
-    return "Size information not found"
+    """Attempts to determine square footage from listing body or structured text."""
+    pass  # logic removed
 
-# Function to get date
 def date(soup):
-    date_finder = soup.find('div', class_='_2RnXSVJcWbWv4IpBC1Sng6')
-    if date_finder:
-        dd_finder = date_finder.find('dd')
-        if dd_finder:
-            date_text = dd_finder.get_text().strip()
-            if date_text not in ['Ask agent', 'Now']:
-                return date_text
+    """Extracts the listing date (e.g. 'Today', 'Yesterday', or exact date)."""
+    pass  # logic removed
 
-    finder_Date = soup.find('div', class_='_2nk2x6QhNB1UrxdI5KpvaF')
-    if finder_Date:
-        text_content = finder_Date.get_text().strip()
-        if 'Today' in text_content:
-            today = datetime.now()
-            today_text = today.strftime('%d/%m/%Y')
-            return today_text
-        elif 'Yesterday' in text_content:
-            yesterday = datetime.now() - timedelta(days=1)
-            yesterday_text = yesterday.strftime('%d/%m/%Y')
-            return yesterday_text
-        else:
-            date_str = text_content.split('on ')[1]
-            try:
-                date_obj = datetime.strptime(date_str, '%d/%m/%Y')
-                date_text = date_obj.strftime('%d/%m/%Y')
-                return date_text
-            except ValueError:
-                pass
-    return "Date information not found"
+# ---------------------- Main Program Structure ----------------------
 
-# Function to browse file
-def browse_file():
-    file_path = filedialog.askopenfilename(
-        filetypes=[("Excel files", "*.xlsx;*.xls")],
-        title="Select an Excel file"
-    )
-    if file_path:
-        file_label.config(text="Selected File: " + file_path)
-        show_options(file_path)
+def main():
+    """
+    Main logic loop:
+    - Loads configuration for each postcode set
+    - Generates links
+    - Scrapes properties
+    - Updates Excel with new or changed data
+    """
+    pass  # logic removed
 
+if __name__ == "__main__":
+    main()
 
-def show_options(file_path):
-    clear_screen()
-
-    selected_file_label = tk.Label(root, text="Selected File: " + file_path)
-    selected_file_label.pack(pady=10)
-
-    try:
-        excel_file = pd.ExcelFile(file_path)
-        sheet_names = excel_file.sheet_names
-    except Exception as e:
-        tk.messagebox.showerror("Error", f"An error occurred while reading sheet names: {e}")
-        return
-
-    if sheet_names:
-        dialog = SheetDialog(root, sheet_names=sheet_names)
-        root.wait_window(dialog)
-        selected_sheet = dialog.selected_sheet
-
-        if selected_sheet:
-            start_button = ttk.Button(root, text="Start Process", command=lambda: start_process(file_path, selected_sheet))
-            start_button.pack(pady=10)
-
-def start_process(file_path, sheet_name):
-    try:
-        href_set = scrape_links(urls, headers)
-        check_and_add_links(href_set, file_path, sheet_name, headers)
-    except Exception as e:
-        tk.messagebox.showerror("Error", f"An error occurred while processing the file: {e}")
-
-def clear_screen():
-    for widget in root.winfo_children():
-        widget.destroy()
-
-# URLs and headers for web scraping
-urls = [
-    ("SE1 9HE","https://www.rightmove.co.uk/property-for-sale/find.html?searchType=SALE&locationIdentifier=POSTCODE%5E4601807&insId=1&radius=0.0&minPrice=&maxPrice=&minBedrooms=&maxBedrooms=&displayPropertyType=&maxDaysSinceAdded=&_includeSSTC=on&sortByPriceDescending=&primaryDisplayPropertyType=&secondaryDisplayPropertyType=&oldDisplayPropertyType=&oldPrimaryDisplayPropertyType=&newHome=&auction=false"),
-    ("SE1 9RB","https://www.rightmove.co.uk/property-for-sale/find.html?locationIdentifier=POSTCODE%5E4596263&propertyTypes=&includeSSTC=false&mustHave=&dontShow=&furnishTypes=&keywords="),
-    ("SE1 9EY", "https://www.rightmove.co.uk/property-for-sale/find.html?searchType=SALE&locationIdentifier=POSTCODE%5E4589903&insId=1&radius=0.0&minPrice=&maxPrice=&minBedrooms=&maxBedrooms=&displayPropertyType=&maxDaysSinceAdded=&_includeSSTC=on&sortByPriceDescending=&primaryDisplayPropertyType=&secondaryDisplayPropertyType=&oldDisplayPropertyType=&oldPrimaryDisplayPropertyType=&newHome=&auction=false"),
-]
-headers = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
-}
-
-# Create the window
-root = tk.Tk()
-
-# Set the window size based on the user's screen size
-width = root.winfo_screenwidth()
-height = root.winfo_screenheight()
-root.geometry("%dx%d" % (width, height))
-
-# Set the window title
-root.title("Excel Automation")
-
-# Label for user instruction
-instruction_label = tk.Label(root, text="Select an Excel file")
-instruction_label.pack(pady=10)
-
-# Button for browsing the file
-browse_button = ttk.Button(root, text="📂 Browse", command=browse_file)
-browse_button.pack(pady=10)
-
-# Label to display the selected file path
-file_label = tk.Label(root, text="Selected File: None")
-file_label.pack(pady=10)
 
 # Start the GUI event loop
 root.mainloop()
