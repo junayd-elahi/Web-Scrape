@@ -6,7 +6,7 @@ This script showcases the structure and capability of a robust property scraping
 All core logic is removed. Function names and purpose explanations remain to illustrate functionality.
 """
 
-# Import modules used (no internal logic is shown)
+# Import modules used 
 import requests
 from bs4 import BeautifulSoup
 import re
